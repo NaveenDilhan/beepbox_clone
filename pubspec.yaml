@@ -1,0 +1,31 @@
+name: beepbox_clone
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.6.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  audioplayers: ^6.1.1  # For playing sound samples
+  flutter_midi_command: ^0.5.3  # For MIDI commands (if needed)
+  provider: ^6.0.3 # Example dependency for state management
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  assets:
+    - assets/piano/C4.wav
+    - assets/piano/D4.wav
+    - assets/piano/E4.wav
+    - assets/piano/F4.wav
+    - assets/piano/G4.wav
+    - assets/piano/A4.wav
+    - assets/piano/B4.wav
+    - assets/piano/C5.wav
+  uses-material-design: true
