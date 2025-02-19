@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MusicBoxPage extends StatefulWidget {
   const MusicBoxPage({super.key});
@@ -12,12 +13,15 @@ class MusicBoxPage extends StatefulWidget {
 class _MusicBoxPageState extends State<MusicBoxPage> with SingleTickerProviderStateMixin {
   bool isPlaying = false;
   int currentStep = 0;
+  double tempo = 120.0; // Default tempo
   late Ticker _ticker;
   final AudioPlayer _audioPlayer = AudioPlayer();
 
   static const int numSteps = 16;
   static const int numNotes = 8;
   final List<bool> grid = List.generate(numSteps * numNotes, (index) => false);
+
+  String selectedInstrument = 'Piano';
 
   final Map<String, String> noteToSound = {
     'C4': 'piano/C4.wav',
@@ -36,7 +40,7 @@ class _MusicBoxPageState extends State<MusicBoxPage> with SingleTickerProviderSt
   void initState() {
     super.initState();
     _ticker = createTicker((elapsed) {
-      int step = (elapsed.inMilliseconds ~/ 300) % numSteps;
+      int step = (elapsed.inMilliseconds ~/ (60000 ~/ tempo ~/ numSteps)) % numSteps;
       if (step != currentStep) {
         setState(() {
           currentStep = step;
@@ -84,6 +88,70 @@ class _MusicBoxPageState extends State<MusicBoxPage> with SingleTickerProviderSt
     });
   }
 
+  Future<void> _saveSequence() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('sequence', grid.join(','));
+  }
+
+  Future<void> _loadSequence() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? savedSequence = prefs.getString('sequence');
+    if (savedSequence != null) {
+      setState(() {
+        grid.clear();
+        grid.addAll(savedSequence.split(',').map((e) => e == 'true'));
+      });
+    }
+  }
+
+  void _updateInstrument(String instrument) {
+    setState(() {
+      selectedInstrument = instrument;
+      noteToSound.clear();
+      if (selectedInstrument == 'Piano') {
+        noteToSound.addAll({
+          'C4': 'piano/C4.wav',
+          'D4': 'piano/D4.wav',
+          'E4': 'piano/E4.wav',
+          'F4': 'piano/F4.wav',
+          'G4': 'piano/G4.wav',
+          'A4': 'piano/A4.wav',
+          'B4': 'piano/B4.wav',
+          'C5': 'piano/C5.wav',
+        });
+      } else if (selectedInstrument == 'Guitar') {
+        noteToSound.addAll({
+          'C4': 'guitar/C4.wav',
+          'D4': 'guitar/D4.wav',
+          'E4': 'guitar/E4.wav',
+          'F4': 'guitar/F4.wav',
+          'G4': 'guitar/G4.wav',
+          'A4': 'guitar/A4.wav',
+          'B4': 'guitar/B4.wav',
+          'C5': 'guitar/C5.wav',
+        });
+      }
+    });
+  }
+
+  Widget buildInstrumentSelector() {
+    return DropdownButton<String>(
+      value: selectedInstrument,
+      items: <String>['Piano', 'Guitar', 'Drums']
+          .map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(value),
+        );
+      }).toList(),
+      onChanged: (String? newValue) {
+        if (newValue != null) {
+          _updateInstrument(newValue);
+        }
+      },
+    );
+  }
+
   @override
   void dispose() {
     _ticker.dispose();
@@ -102,6 +170,26 @@ class _MusicBoxPageState extends State<MusicBoxPage> with SingleTickerProviderSt
               padding: const EdgeInsets.all(10),
               child: Column(
                 children: [
+                  buildInstrumentSelector(), // Add the instrument selector
+                  // Tempo control slider
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('Tempo', style: TextStyle(color: Colors.white)),
+                      Slider(
+                        value: tempo,
+                        min: 30.0,
+                        max: 240.0,
+                        divisions: 210,
+                        label: '${tempo.toStringAsFixed(0)} BPM',
+                        onChanged: (double newTempo) {
+                          setState(() {
+                            tempo = newTempo;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
                   for (int i = 0; i < numNotes; i++) 
                     Row(
                       children: [
@@ -177,3 +265,4 @@ class _MusicBoxPageState extends State<MusicBoxPage> with SingleTickerProviderSt
     );
   }
 }
+
