@@ -1,0 +1,2 @@
+D:/beepbox/beepbox_clone/android/app/.cxx/Debug/2q4w2x3q/x86/CMakeFiles/edit_cache.dir
+D:/beepbox/beepbox_clone/android/app/.cxx/Debug/2q4w2x3q/x86/CMakeFiles/rebuild_cache.dir
